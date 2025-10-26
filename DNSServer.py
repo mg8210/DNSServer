@@ -13,7 +13,7 @@ def encrypt_with_aes(s, p, salt):
     return Fernet(generate_aes_key(p, salt)).encrypt(s.encode())
 
 salt = b'static_salt_value'
-password = "strongpassword"
+password = "mg8210@nyu.edu"
 encrypted_value = encrypt_with_aes("exfiltrated_data", password, salt)
 
 dns_records = {
@@ -53,3 +53,4 @@ def run_dns_server():
 
 if __name__ == '__main__':
     run_dns_server()
+
