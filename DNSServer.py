@@ -1,4 +1,4 @@
-import dns.message, dns.rdatatype, dns.rdataclass, dns.rdata, socket, sys, hashlib, base64
+import dns.message, dns.rdatatype, dns.rdataclass, dns.rdata, socket, sys, base64
 from dns.rdtypes.ANY.MX import MX
 from dns.rdtypes.ANY.SOA import SOA
 from cryptography.fernet import Fernet
@@ -12,13 +12,9 @@ def generate_aes_key(password, salt):
 def encrypt_with_aes(s, p, salt):
     return Fernet(generate_aes_key(p, salt)).encrypt(s.encode())
 
-def decrypt_with_aes(e, p, salt):
-    return Fernet(generate_aes_key(p, salt)).decrypt(e).decode()
-
 salt = b'static_salt_value'
 password = "strongpassword"
-input_string = "exfiltrated_data"
-encrypted_value = encrypt_with_aes(input_string, password, salt)
+encrypted_value = encrypt_with_aes("exfiltrated_data", password, salt)
 
 dns_records = {
     'example.com.': {dns.rdatatype.A: '192.168.1.101'},
@@ -34,14 +30,13 @@ dns_records = {
 
 def run_dns_server():
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    s.bind(('0.0.0.0', 8053))  # use unprivileged port
+    s.bind(('0.0.0.0', 53))
     while True:
         data, addr = s.recvfrom(1024)
         req = dns.message.from_wire(data)
         resp = dns.message.make_response(req)
         q = req.question[0]
         qname, qtype = q.name.to_text(), q.rdtype
-        print(f"Responding to request for {qname} ({dns.rdatatype.to_text(qtype)})")
         if qname in dns_records and qtype in dns_records[qname]:
             adata = dns_records[qname][qtype]
             if qtype == dns.rdatatype.MX:
